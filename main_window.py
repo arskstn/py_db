@@ -1,4 +1,4 @@
-# main_window.py
+import importlib
 from PyQt5.QtWidgets import QMainWindow, QAction, QMenu, QMessageBox
 from PyQt5.QtCore import Qt
 
@@ -8,7 +8,7 @@ from models import MenuItem
 class MainWindow(QMainWindow):
     def __init__(self, user_data):
         super().__init__()
-        self.user_data = user_data
+        self.user_data = user_data  # {id, username, is_superuser}
         self.setWindowTitle("Эксперимент - Главное окно")
         self.resize(1000, 700)
 
@@ -20,12 +20,17 @@ class MainWindow(QMainWindow):
     def create_menu_structure(self):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, parent_id, name, dll_name, func_name, display_order FROM MenuItems ORDER BY display_order ASC")
+        cursor.execute("""
+            SELECT id, parent_id, name, dll_name, func_name, display_order 
+            FROM MenuItems 
+            ORDER BY display_order ASC
+        """)
         items = cursor.fetchall()
         conn.close()
 
         menu_items = {}
         for row in items:
+            # row = (id, parent_id, name, dll_name, func_name, display_order)
             mi = MenuItem(*row)
             menu_items[mi.id] = mi
 
@@ -55,16 +60,45 @@ class MainWindow(QMainWindow):
         create_submenu(0, None)
 
     def handle_menu_action(self, menu_item):
-        # Проверка прав доступа (чтение хотя бы)
-        if not self.user_data["is_superuser"]:
+        # Проверка прав
+        if not self.user_data.get("is_superuser", False):
             if not self.check_user_rights(menu_item.id, "read"):
-                QMessageBox.warning(self, "Доступ запрещён", "У вас нет прав к этому пункту меню.")
+                QMessageBox.warning(self, "Доступ запрещён", f"У вас нет прав на пункт меню '{menu_item.name}'.")
                 return
 
-        # Для упрощения: выводим QMessageBox, что "здесь будет вызов формы"
-        # Но можно сделать реальную загрузку формы по dll_name и func_name
-        QMessageBox.information(self, "Действие", 
-            f"Здесь будет вызов модуля '{menu_item.dll_name}', класса '{menu_item.func_name}'.")
+        dll_name = menu_item.dll_name
+        func_name = menu_item.func_name
+
+        # Отдельный случай: пункты 'Окно' (window_module)
+        if dll_name == "window_module":
+            self.handle_window_actions(func_name)
+            return
+
+        # Динамический импорт модуля
+        if dll_name and func_name:
+            try:
+                imported_module = importlib.import_module(f"forms.{dll_name}")
+                form_class = getattr(imported_module, func_name, None)
+                if form_class:
+                    form_instance = form_class(self)
+                    form_instance.show()
+                else:
+                    QMessageBox.warning(self, "Ошибка", f"Класс {func_name} не найден в модуле forms.{dll_name}.")
+            except ImportError as e:
+                QMessageBox.warning(self, "Ошибка импорта", str(e))
+        else:
+            QMessageBox.information(self, "Информация", "Этот пункт меню не привязан к форме.")
+
+    def handle_window_actions(self, func_name):
+        try:
+            imported_module = importlib.import_module("forms.window_module")
+            if hasattr(imported_module, func_name):
+                func = getattr(imported_module, func_name)
+                func(self)
+            else:
+                QMessageBox.information(self, "Окно", "Неизвестное действие.")
+        except ImportError as e:
+            QMessageBox.warning(self, "Ошибка", str(e))
 
     def check_user_rights(self, menu_item_id, permission="read"):
         col_map = {"read": "can_read", "write": "can_write", "delete": "can_delete"}
@@ -72,8 +106,8 @@ class MainWindow(QMainWindow):
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute(f"SELECT {col_name} FROM UserRights WHERE user_id = ? AND menu_item_id = ?", 
-                       (self.user_data["id"], menu_item_id))
+        cursor.execute(f"SELECT {col_name} FROM UserRights WHERE user_id = ? AND menu_item_id = ?",
+                       (self.user_data.get('id'), menu_item_id))
         row = cursor.fetchone()
         conn.close()
 

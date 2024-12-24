@@ -1,6 +1,7 @@
-# login.py
-from PyQt5.QtWidgets import (QDialog, QLabel, QLineEdit, QPushButton, 
-                             QVBoxLayout, QHBoxLayout, QMessageBox, QCheckBox)
+from PyQt5.QtWidgets import (
+    QDialog, QLabel, QLineEdit, QPushButton, 
+    QVBoxLayout, QHBoxLayout, QMessageBox, QCheckBox
+)
 from user_management import register_user, login_user
 
 class LoginWindow(QDialog):

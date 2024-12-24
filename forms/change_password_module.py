@@ -1,5 +1,6 @@
-# forms/change_password_form.py
-from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
+from PyQt5.QtWidgets import (
+    QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
+)
 from user_management import change_password
 
 class ChangePasswordForm(QWidget):

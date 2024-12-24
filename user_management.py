@@ -1,4 +1,3 @@
-# user_management.py
 import sqlite3
 from database import get_connection
 
@@ -23,7 +22,11 @@ def register_user(username, password, is_superuser=0):
 def login_user(username, password):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, username, password, is_superuser FROM Users WHERE username = ?", (username,))
+    cursor.execute("""
+        SELECT id, username, password, is_superuser 
+        FROM Users 
+        WHERE username = ?
+    """, (username,))
     user_row = cursor.fetchone()
     conn.close()
 
@@ -31,7 +34,7 @@ def login_user(username, password):
         return None, "Неправильный логин."
     user_id, db_username, db_password, db_superuser = user_row
 
-    if password != db_password:
+    if db_password != password:
         return None, "Неверный пароль."
 
     return {
@@ -54,7 +57,11 @@ def change_password(user_id, old_password, new_password):
         conn.close()
         return False, "Старый пароль неверен."
 
-    cursor.execute("UPDATE Users SET password = ? WHERE id = ?", (new_password, user_id))
+    cursor.execute("""
+        UPDATE Users
+        SET password = ?
+        WHERE id = ?
+    """, (new_password, user_id))
     conn.commit()
     conn.close()
     return True, "Пароль успешно изменён."

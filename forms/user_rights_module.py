@@ -1,5 +1,7 @@
-# forms/user_rights_form.py
-from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QCheckBox, QPushButton, QVBoxLayout, QHBoxLayout, QMessageBox
+from PyQt5.QtWidgets import (
+    QWidget, QLabel, QComboBox, QCheckBox, QPushButton, 
+    QVBoxLayout, QHBoxLayout, QMessageBox
+)
 from database import get_connection
 
 class UserRightsForm(QWidget):
@@ -78,14 +80,12 @@ class UserRightsForm(QWidget):
         cursor.execute("SELECT id FROM UserRights WHERE user_id = ? AND menu_item_id = ?", (user_id, menu_id))
         row = cursor.fetchone()
         if row:
-            # обновим
             cursor.execute("""
                 UPDATE UserRights
                 SET can_read = ?, can_write = ?, can_delete = ?
                 WHERE id = ?
             """, (can_read, can_write, can_delete, row[0]))
         else:
-            # создадим
             cursor.execute("""
                 INSERT INTO UserRights (user_id, menu_item_id, can_read, can_write, can_delete)
                 VALUES (?, ?, ?, ?, ?)

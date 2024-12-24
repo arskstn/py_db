@@ -1,4 +1,3 @@
-# forms/help_content_form.py
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit
 
 class HelpContentForm(QWidget):

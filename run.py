@@ -1,4 +1,4 @@
-# run.py
+#!/usr/bin/env python
 import sys
 from PyQt5.QtWidgets import QApplication
 from database import init_db
@@ -23,5 +23,5 @@ def main():
     else:
         sys.exit(0)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

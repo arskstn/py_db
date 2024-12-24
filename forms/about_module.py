@@ -1,4 +1,3 @@
-# forms/about_form.py
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 class AboutForm(QWidget):

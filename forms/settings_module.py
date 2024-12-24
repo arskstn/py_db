@@ -1,4 +1,3 @@
-# forms/settings_form.py
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton
 
 class SettingsForm(QWidget):

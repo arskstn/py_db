@@ -16,17 +16,18 @@ def init_db():
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS UserRights (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            menu_item_id INTEGER NOT NULL,
-            can_read INTEGER DEFAULT 0,
-            can_write INTEGER DEFAULT 0,
-            can_delete INTEGER DEFAULT 0,
-            FOREIGN KEY(user_id) REFERENCES Users(id),
-            FOREIGN KEY(menu_item_id) REFERENCES MenuItems(id)
-        );
-    """)
+    CREATE TABLE IF NOT EXISTS UserRights (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        menu_item_id INTEGER NOT NULL,
+        can_read INTEGER DEFAULT 0,
+        can_write INTEGER DEFAULT 0,
+        can_delete INTEGER DEFAULT 0,
+        can_update INTEGER DEFAULT 0,  -- новое поле!
+        FOREIGN KEY(user_id) REFERENCES Users(id),
+        FOREIGN KEY(menu_item_id) REFERENCES MenuItems(id)
+    );
+""")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS MenuItems (
@@ -71,18 +72,34 @@ def init_db():
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Suppliers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
-        );
-    """)
+    CREATE TABLE IF NOT EXISTS Suppliers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        country_id INTEGER,
+        bank_id INTEGER,
+        inn TEXT,
+        address TEXT,
+        zip_code TEXT,
+        email TEXT,
+        FOREIGN KEY(country_id) REFERENCES Countries(id),
+        FOREIGN KEY(bank_id) REFERENCES Banks(id)
+    );
+""")
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Clients (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
-        );
-    """)
+    CREATE TABLE IF NOT EXISTS Clients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        country_id INTEGER,
+        bank_id INTEGER,
+        inn TEXT,
+        address TEXT,
+        zip_code TEXT,
+        email TEXT,
+        FOREIGN KEY(country_id) REFERENCES Countries(id),
+        FOREIGN KEY(bank_id) REFERENCES Banks(id)
+    );
+""")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Products (
@@ -162,6 +179,8 @@ def init_db():
             report_date TEXT
         );
     """)
+    
+    
 
     conn.commit()
     conn.close()

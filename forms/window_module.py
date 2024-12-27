@@ -1,16 +1,22 @@
-from PyQt5.QtWidgets import QMessageBox, QWidget
+# forms/window_module.py
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import Qt
 
-def CascadeWindowsAction(main_window):
-    QMessageBox.information(main_window, "Окно", "Окна будут расположены каскадом (MDI).")
+def CascadeWindowsAction():
+    # Можно убрать, если не понадобится. Я не знаю, что тут можно каскадом открывать
+    pass
 
-def MinimizeAllAction(main_window):
-    for w in QWidget.topLevelWidgets():
-        if w is not main_window:
-            w.showMinimized()
-    QMessageBox.information(main_window, "Окно", "Все окна (кроме главного) свернуты.")
+def MinimizeAllAction():
+    for w in QApplication.topLevelWidgets():
+        if not w.isWindow() or not w.isVisible():
+            continue
+        if w.windowState() & Qt.WindowMinimized:
+            continue
+        w.showMinimized()
 
-def RestoreAllAction(main_window):
-    for w in QWidget.topLevelWidgets():
-        if w.isMinimized():
+def RestoreAllAction():
+    for w in QApplication.topLevelWidgets():
+        if not w.isWindow() or not w.isVisible():
+            continue
+        if w.windowState() & Qt.WindowMinimized:
             w.showNormal()
-    QMessageBox.information(main_window, "Окно", "Все окна восстановлены.")

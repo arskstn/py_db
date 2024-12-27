@@ -12,14 +12,14 @@ class UserRightsForm(QWidget):
         self.label_user = QLabel("Выберите пользователя:")
         self.combo_users = QComboBox()
 
-        self.label_menu = QLabel("Выберите пункт меню:")
+        self.label_menu = QLabel("Выберите пункт меню (или ВСЕ):")
         self.combo_menu = QComboBox()
 
         self.check_read = QCheckBox("Чтение")
         self.check_write = QCheckBox("Запись")
         self.check_delete = QCheckBox("Удаление")
 
-        self.btn_save = QPushButton("Сохранить")
+        self.btn_save = QPushButton("Сохранить права")
         self.btn_save.clicked.connect(self.save_rights)
 
         layout_user = QHBoxLayout()
@@ -58,6 +58,9 @@ class UserRightsForm(QWidget):
             self.combo_users.addItem(username, user_id)
 
     def load_menu_items(self):
+        self.combo_menu.clear()
+        self.combo_menu.addItem("ВСЕ", -1)
+
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT id, name FROM MenuItems ORDER BY display_order")
@@ -71,27 +74,50 @@ class UserRightsForm(QWidget):
     def save_rights(self):
         user_id = self.combo_users.currentData()
         menu_id = self.combo_menu.currentData()
+
         can_read = 1 if self.check_read.isChecked() else 0
         can_write = 1 if self.check_write.isChecked() else 0
         can_delete = 1 if self.check_delete.isChecked() else 0
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM UserRights WHERE user_id = ? AND menu_item_id = ?", (user_id, menu_id))
-        row = cursor.fetchone()
-        if row:
-            cursor.execute("""
-                UPDATE UserRights
-                SET can_read = ?, can_write = ?, can_delete = ?
-                WHERE id = ?
-            """, (can_read, can_write, can_delete, row[0]))
+
+        if menu_id == -1:
+            cursor.execute("SELECT id FROM MenuItems")
+            all_menu_ids = [row[0] for row in cursor.fetchall()]
+
+            for mid in all_menu_ids:
+                cursor.execute("SELECT id FROM UserRights WHERE user_id=? AND menu_item_id=?", (user_id, mid))
+                row = cursor.fetchone()
+                if row:
+                    # update
+                    cursor.execute("""
+                        UPDATE UserRights
+                        SET can_read=?, can_write=?, can_delete=?
+                        WHERE id=?
+                    """, (can_read, can_write, can_delete, row[0]))
+                else:
+                    # insert
+                    cursor.execute("""
+                        INSERT INTO UserRights (user_id, menu_item_id, can_read, can_write, can_delete)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (user_id, mid, can_read, can_write, can_delete))
         else:
-            cursor.execute("""
-                INSERT INTO UserRights (user_id, menu_item_id, can_read, can_write, can_delete)
-                VALUES (?, ?, ?, ?, ?)
-            """, (user_id, menu_id, can_read, can_write, can_delete))
+            cursor.execute("SELECT id FROM UserRights WHERE user_id=? AND menu_item_id=?", (user_id, menu_id))
+            row = cursor.fetchone()
+            if row:
+                cursor.execute("""
+                    UPDATE UserRights
+                    SET can_read=?, can_write=?, can_delete=?
+                    WHERE id=?
+                """, (can_read, can_write, can_delete, row[0]))
+            else:
+                cursor.execute("""
+                    INSERT INTO UserRights (user_id, menu_item_id, can_read, can_write, can_delete)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (user_id, menu_id, can_read, can_write, can_delete))
 
         conn.commit()
         conn.close()
 
-        QMessageBox.information(self, "Успех", "Права доступа сохранены.")
+        QMessageBox.information(self, "Успех", "Права сохранены.")

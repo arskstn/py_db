@@ -1,46 +1,56 @@
+# forms/change_password_module.py
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
 )
 from user_management import change_password
 
 class ChangePasswordForm(QWidget):
-    def __init__(self, user_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.user_id = user_id
         self.setWindowTitle("Сменить пароль")
 
-        self.label_old = QLabel("Старый пароль:")
-        self.edit_old = QLineEdit()
-        self.edit_old.setEchoMode(QLineEdit.Password)
+        self.user_id = 0
+        if parent and hasattr(parent, "user_data"):
+            self.user_id = parent.user_data.get("id", 0)
 
-        self.label_new1 = QLabel("Новый пароль:")
-        self.edit_new1 = QLineEdit()
-        self.edit_new1.setEchoMode(QLineEdit.Password)
+        layout = QVBoxLayout()
 
-        self.label_new2 = QLabel("Повторите новый пароль:")
-        self.edit_new2 = QLineEdit()
-        self.edit_new2.setEchoMode(QLineEdit.Password)
+        self.lbl_old = QLabel("Старый пароль:")
+        self.txt_old = QLineEdit()
+        self.txt_old.setEchoMode(QLineEdit.Password)
+
+        self.lbl_new1 = QLabel("Новый пароль:")
+        self.txt_new1 = QLineEdit()
+        self.txt_new1.setEchoMode(QLineEdit.Password)
+
+        self.lbl_new2 = QLabel("Повтор нового пароля:")
+        self.txt_new2 = QLineEdit()
+        self.txt_new2.setEchoMode(QLineEdit.Password)
 
         self.btn_change = QPushButton("Изменить пароль")
         self.btn_change.clicked.connect(self.handle_change)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.label_old)
-        layout.addWidget(self.edit_old)
-        layout.addWidget(self.label_new1)
-        layout.addWidget(self.edit_new1)
-        layout.addWidget(self.label_new2)
-        layout.addWidget(self.edit_new2)
+        layout.addWidget(self.lbl_old)
+        layout.addWidget(self.txt_old)
+        layout.addWidget(self.lbl_new1)
+        layout.addWidget(self.txt_new1)
+        layout.addWidget(self.lbl_new2)
+        layout.addWidget(self.txt_new2)
         layout.addWidget(self.btn_change)
+
         self.setLayout(layout)
 
     def handle_change(self):
-        old_pass = self.edit_old.text().strip()
-        new_pass1 = self.edit_new1.text().strip()
-        new_pass2 = self.edit_new2.text().strip()
+        old_pass = self.txt_old.text().strip()
+        new_pass1 = self.txt_new1.text().strip()
+        new_pass2 = self.txt_new2.text().strip()
+
+        if self.user_id == 0:
+            QMessageBox.warning(self, "Ошибка", "Не удалось определить пользователя.")
+            return
 
         if not old_pass or not new_pass1 or not new_pass2:
-            QMessageBox.warning(self, "Ошибка", "Пожалуйста, заполните все поля.")
+            QMessageBox.warning(self, "Ошибка", "Заполните все поля.")
             return
 
         if new_pass1 != new_pass2:
@@ -49,7 +59,7 @@ class ChangePasswordForm(QWidget):
 
         success, msg = change_password(self.user_id, old_pass, new_pass1)
         if success:
-            QMessageBox.information(self, "Успех", msg)
+            QMessageBox.information(self, "OK", msg)
             self.close()
         else:
             QMessageBox.warning(self, "Ошибка", msg)

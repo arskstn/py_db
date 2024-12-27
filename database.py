@@ -6,7 +6,6 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # Таблица пользователей
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,7 +15,6 @@ def init_db():
         );
     """)
 
-    # Таблица прав доступа
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS UserRights (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +28,6 @@ def init_db():
         );
     """)
 
-    # Таблица структуры меню
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS MenuItems (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,9 +40,6 @@ def init_db():
         );
     """)
 
-    # Остальные таблицы для справочников, склада, финансов, документов
-
-    # Countries
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Countries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +48,6 @@ def init_db():
         );
     """)
 
-    # Banks
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Banks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +56,6 @@ def init_db():
         );
     """)
 
-    # ExpenseCategories
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ExpenseCategories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,7 +63,6 @@ def init_db():
         );
     """)
 
-    # TransportExpenses
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS TransportExpenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +70,6 @@ def init_db():
         );
     """)
 
-    # Suppliers
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Suppliers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,7 +77,6 @@ def init_db():
         );
     """)
 
-    # Clients
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,7 +84,6 @@ def init_db():
         );
     """)
 
-    # Products
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,7 +92,6 @@ def init_db():
         );
     """)
 
-    # Units
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Units (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,7 +99,6 @@ def init_db():
         );
     """)
 
-    # Склад: WarehouseInvoices
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS WarehouseInvoices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,7 +109,6 @@ def init_db():
         );
     """)
 
-    # Склад: WarehouseOrders
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS WarehouseOrders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,7 +119,6 @@ def init_db():
         );
     """)
 
-    # Финансовый учёт: EnterpriseExpenses
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS EnterpriseExpenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -145,7 +129,6 @@ def init_db():
         );
     """)
 
-    # Фин. учёт: ProductCostCalculation
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ProductCostCalculation (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -156,7 +139,6 @@ def init_db():
         );
     """)
 
-    # Документы: DocInvoices
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS DocInvoices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -165,7 +147,6 @@ def init_db():
         );
     """)
 
-    # Документы: DocOrders
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS DocOrders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -174,7 +155,6 @@ def init_db():
         );
     """)
 
-    # Документы: DocFinReports
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS DocFinReports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

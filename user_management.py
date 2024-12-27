@@ -1,11 +1,11 @@
+# user_management.py
 import sqlite3
 from database import get_connection
 
 def register_user(username, password, is_superuser=0):
     conn = get_connection()
     cursor = conn.cursor()
-
-    cursor.execute("SELECT id FROM Users WHERE username = ?", (username,))
+    cursor.execute("SELECT id FROM Users WHERE username=?", (username,))
     existing = cursor.fetchone()
     if existing:
         conn.close()
@@ -23,9 +23,9 @@ def login_user(username, password):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, username, password, is_superuser 
-        FROM Users 
-        WHERE username = ?
+        SELECT id, username, password, is_superuser
+        FROM Users
+        WHERE username=?
     """, (username,))
     user_row = cursor.fetchone()
     conn.close()
@@ -46,22 +46,18 @@ def login_user(username, password):
 def change_password(user_id, old_password, new_password):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT password FROM Users WHERE id = ?", (user_id,))
+    cursor.execute("SELECT id, password FROM Users WHERE id=?", (user_id,))
     row = cursor.fetchone()
     if not row:
         conn.close()
         return False, "Пользователь не найден."
 
-    current_password = row[0]
+    _, current_password = row
     if current_password != old_password:
         conn.close()
         return False, "Старый пароль неверен."
 
-    cursor.execute("""
-        UPDATE Users
-        SET password = ?
-        WHERE id = ?
-    """, (new_password, user_id))
+    cursor.execute("UPDATE Users SET password=? WHERE id=?", (new_password, user_id))
     conn.commit()
     conn.close()
     return True, "Пароль успешно изменён."

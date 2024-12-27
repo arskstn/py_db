@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# run.py
 import sys
 from PyQt5.QtWidgets import QApplication
 from database import init_db
@@ -12,7 +12,6 @@ def main():
     User.create_superuser_if_not_exists()
 
     app = QApplication(sys.argv)
-    app.setStyle("Fusion")
 
     login_window = LoginWindow()
     if login_window.exec_() == LoginWindow.Accepted:
@@ -23,5 +22,5 @@ def main():
     else:
         sys.exit(0)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

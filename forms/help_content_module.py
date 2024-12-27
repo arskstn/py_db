@@ -9,7 +9,7 @@ class HelpContentForm(QWidget):
         label = QLabel("Оглавление справочной системы:")
         text = QTextEdit()
         text.setReadOnly(True)
-        text.setText("Здесь может быть подробное оглавление справки...\n1. Введение\n2. Как работать...\nи т.д.")
+        text.setText("Напиши здесь что хочешь...\n1. Введение\n2. Я люблю шашлыки...\nи т.д.")
         layout.addWidget(label)
         layout.addWidget(text)
         self.setLayout(layout)

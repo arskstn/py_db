@@ -1,5 +1,5 @@
 import importlib
-from PyQt5.QtWidgets import QMainWindow, QAction, QMenu, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox
 from PyQt5.QtCore import Qt
 
 from database import get_connection
@@ -8,21 +8,21 @@ from models import MenuItem
 class MainWindow(QMainWindow):
     def __init__(self, user_data):
         super().__init__()
-        self.user_data = user_data  # {id, username, is_superuser}
-        self.setWindowTitle("Эксперимент - Главное окно")
+        self.user_data = user_data  # {"id": int, "username": str, "is_superuser": bool}
+        self.setWindowTitle("Финансовый учет")
         self.resize(1000, 700)
 
-        self.menubar = self.menuBar()
-        self.menu_dict = {}
+        self._opened_windows = []
 
+        self.menubar = self.menuBar()
         self.create_menu_structure()
 
     def create_menu_structure(self):
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT id, parent_id, name, dll_name, func_name, display_order 
-            FROM MenuItems 
+            SELECT id, parent_id, name, dll_name, func_name, display_order
+            FROM MenuItems
             ORDER BY display_order ASC
         """)
         items = cursor.fetchall()
@@ -30,8 +30,7 @@ class MainWindow(QMainWindow):
 
         menu_items = {}
         for row in items:
-            # row = (id, parent_id, name, dll_name, func_name, display_order)
-            mi = MenuItem(*row)
+            mi = MenuItem(*row)  # (id, parent_id, name, dll_name, func_name, display_order)
             menu_items[mi.id] = mi
 
         children_map = {}
@@ -46,12 +45,16 @@ class MainWindow(QMainWindow):
                 return
             for child_item in children_map[parent_id]:
                 if child_item.dll_name is None and child_item.func_name is None:
-                    new_menu = self.menubar.addMenu(child_item.name) if parent_menu is None else parent_menu.addMenu(child_item.name)
-                    self.menu_dict[child_item.id] = new_menu
+                    if parent_menu is None:
+                        new_menu = self.menubar.addMenu(child_item.name)
+                    else:
+                        new_menu = parent_menu.addMenu(child_item.name)
                     create_submenu(child_item.id, new_menu)
                 else:
                     action = QAction(child_item.name, self)
+                    action.setMenuRole(QAction.NoRole)
                     action.triggered.connect(lambda checked, mi=child_item: self.handle_menu_action(mi))
+
                     if parent_menu is None:
                         self.menubar.addAction(action)
                     else:
@@ -63,40 +66,46 @@ class MainWindow(QMainWindow):
         # Проверка прав
         if not self.user_data.get("is_superuser", False):
             if not self.check_user_rights(menu_item.id, "read"):
-                QMessageBox.warning(self, "Доступ запрещён", f"У вас нет прав на пункт меню '{menu_item.name}'.")
+                QMessageBox.warning(self, "Доступ запрещён", f"Нет прав на {menu_item.name}")
                 return
 
         dll_name = menu_item.dll_name
         func_name = menu_item.func_name
 
-        # Отдельный случай: пункты 'Окно' (window_module)
         if dll_name == "window_module":
             self.handle_window_actions(func_name)
             return
 
-        # Динамический импорт модуля
         if dll_name and func_name:
             try:
                 imported_module = importlib.import_module(f"forms.{dll_name}")
                 form_class = getattr(imported_module, func_name, None)
-                if form_class:
-                    form_instance = form_class(self)
-                    form_instance.show()
-                else:
-                    QMessageBox.warning(self, "Ошибка", f"Класс {func_name} не найден в модуле forms.{dll_name}.")
+                if not form_class:
+                    QMessageBox.warning(self, "Ошибка", f"Класс {func_name} не найден в модуле {dll_name}.py")
+                    return
+
+                form_instance = form_class(self)
+                form_instance.setWindowFlag(Qt.Window)  
+                form_instance.resize(600, 400)
+                form_instance.show()
+                form_instance.raise_()
+                form_instance.activateWindow()
+
+                self._opened_windows.append(form_instance)
             except ImportError as e:
                 QMessageBox.warning(self, "Ошибка импорта", str(e))
         else:
-            QMessageBox.information(self, "Информация", "Этот пункт меню не привязан к форме.")
+            QMessageBox.information(self, "Инфо", "Нет dll_name / func_name у данного пункта меню")
 
     def handle_window_actions(self, func_name):
+        import importlib
         try:
-            imported_module = importlib.import_module("forms.window_module")
-            if hasattr(imported_module, func_name):
-                func = getattr(imported_module, func_name)
-                func(self)
+            mod = importlib.import_module("forms.window_module")
+            if hasattr(mod, func_name):
+                func = getattr(mod, func_name)
+                func()  
             else:
-                QMessageBox.information(self, "Окно", "Неизвестное действие.")
+                QMessageBox.information(self, "Окно", f"Неизвестное действие: {func_name}")
         except ImportError as e:
             QMessageBox.warning(self, "Ошибка", str(e))
 
@@ -106,11 +115,9 @@ class MainWindow(QMainWindow):
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute(f"SELECT {col_name} FROM UserRights WHERE user_id = ? AND menu_item_id = ?",
-                       (self.user_data.get('id'), menu_item_id))
+        cursor.execute(f"SELECT {col_name} FROM UserRights WHERE user_id=? AND menu_item_id=?",
+                       (self.user_data["id"], menu_item_id))
         row = cursor.fetchone()
         conn.close()
 
-        if row and row[0] == 1:
-            return True
-        return False
+        return (row and row[0] == 1)

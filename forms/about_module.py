@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+# forms/about_module.py
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
 
 class AboutForm(QWidget):
     def __init__(self, parent=None):
@@ -6,5 +7,9 @@ class AboutForm(QWidget):
         self.setWindowTitle("О программе")
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Эксперимент - Пример приложения на Python + PyQt5.\nАвтор: Вася Пупкин.\nВерсия 1.0."))
+        layout.addWidget(QLabel("Финансовый учет.\nАвтор: Елена Жукова.\nВерсия 1.0."))
+        btn_close = QPushButton("Закрыть")
+        btn_close.clicked.connect(self.close)
+        layout.addWidget(btn_close)
+
         self.setLayout(layout)
